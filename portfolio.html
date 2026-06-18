@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>body { background-color: #010409; color: white; }</style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <aside class="w-1/3 md:w-64 bg-[#0d1117] p-4 flex flex-col justify-between shrink-0 border-r border-gray-800">
+        <div>
+            <input type="file" id="fileInput" class="hidden" onchange="handleUpload(event)">
+            <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 w-full py-2 rounded-lg mb-6 text-sm font-semibold hover:bg-blue-700 transition">
+                + Upload File
+            </button>
+            <nav class="space-y-4 text-sm text-gray-400">
+                <a href="#" class="block text-blue-400 font-medium">Files</a>
+                <p>Images</p>
+                <p>Documents</p>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 overflow-y-auto">
+        <h2 class="text-xs font-semibold mb-4 uppercase text-gray-500">My Files</h2>
+        <div id="fileGrid" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import { getStorage, ref, uploadBytes, listAll } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBuhkKZtvaXA_JmyJxupLzlNds9TkLXnGg",
+            authDomain: "my-portfolio-web-2472d.firebaseapp.com",
+            projectId: "my-portfolio-web-2472d",
+            storageBucket: "my-portfolio-web-2472d.firebasestorage.app",
+            messagingSenderId: "413507463704",
+            appId: "1:413507463704:web:8173ed4adcab93864a716d",
+            measurementId: "G-T499HCD0C1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // Upload Function
+        window.handleUpload = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const storageRef = ref(storage, 'uploads/' + file.name);
+            await uploadBytes(storageRef, file);
+            alert('File uploaded to Firebase!');
+            loadFiles();
+        };
+
+        // Load Files Function
+        async function loadFiles() {
+            const grid = document.getElementById('fileGrid');
+            const listRef = ref(storage, 'uploads/');
+            
+            try {
+                const res = await listAll(listRef);
+                grid.innerHTML = '';
+                res.items.forEach((itemRef) => {
+                    grid.innerHTML += `
+                        <div class="bg-[#161b22] p-3 rounded-lg border border-gray-700 h-20 flex flex-col items-center justify-center hover:border-blue-500 transition">
+                            <i class="fa-solid fa-file text-blue-500 text-2xl mb-1"></i>
+                            <p class="text-[10px] truncate w-full text-center">${itemRef.name}</p>
+                        </div>`;
+                });
+            } catch (error) {
+                console.error("Error loading files:", error);
+            }
+        }
+
+        loadFiles();
+    </script>
+</body>
+</html>
